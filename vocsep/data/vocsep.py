@@ -1,15 +1,14 @@
-from struttura.data import StrutturaDataset
+from vocsep.data import StrutturaDataset
 from joblib import Parallel, delayed
 from tqdm import tqdm
 import partitura
 import os
-from struttura.utils import hetero_graph_from_note_array, select_features, HeteroScoreGraph, score_graph_to_pyg, load_score_hgraph
-from struttura.models.core import positional_encoding
+from vocsep.utils import hetero_graph_from_note_array, select_features, HeteroScoreGraph, score_graph_to_pyg, load_score_hgraph
+from vocsep.models.core import positional_encoding
 import torch
 import partitura as pt
 import gc
 import numpy as np
-import torch_geometric as pyg
 from numpy.lib.recfunctions import structured_to_unstructured
 
 
@@ -252,7 +251,7 @@ def get_mcma_potential_edges(hg, max_dist=16):
     # readd consecutive edges if they were deleted
     trim_adj[consecutive_dense == 1] = 1
     # transform to edge index
-    pot_edges = pyg.utils.sparse.dense_to_sparse(trim_adj)[0]
+    pot_edges = trim_adj.nonzero().t()
     return pot_edges
 
 

@@ -3,13 +3,11 @@ import random, string
 import pickle
 import warnings
 import partitura.io.exportparangonada
-import torch_geometric as pyg
-from struttura.utils.general import exit_after
-from struttura.descriptors.general import *
+from vocsep.utils.general import exit_after
+from vocsep.descriptors.general import *
 import torch
 from typing import Union
-
-from struttura.utils.hgraph import HeteroScoreGraph
+from vocsep.utils.hgraph import HeteroScoreGraph
 
 
 class ScoreGraph(object):

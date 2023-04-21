@@ -1,13 +1,43 @@
 import numpy as np
 from pytorch_lightning import LightningModule
 import torch
-from struttura.metrics.losses import LinkPredictionLoss, LinearAssignmentLoss, LinearAssignmentLossCE
+from vocsep.metrics.losses import LinkPredictionLoss, LinearAssignmentLoss, LinearAssignmentLossCE
 from torchmetrics import F1Score, Accuracy, Precision, Recall
-from struttura.metrics.slow_eval import MonophonicVoiceF1
-from struttura.metrics.eval import LinearAssignmentScore
-import torch_geometric as pyg
+from vocsep.metrics.slow_eval import MonophonicVoiceF1
+from vocsep.metrics.eval import LinearAssignmentScore
 from torch.nn import functional as F
 from scipy.optimize import linear_sum_assignment
+from torch_scatter import scatter
+
+
+def to_dense_adj(edge_index, max_num_nodes):
+    num_nodes = int(edge_index.max()) + 1 if edge_index.numel() > 0 else 0
+    batch = edge_index.new_zeros(num_nodes)
+    batch_size = int(batch.max()) + 1 if batch.numel() > 0 else 1
+    one = batch.new_ones(batch.size(0))
+    num_nodes = scatter(one, batch, dim=0, dim_size=batch_size, reduce='sum')
+    cum_nodes = torch.cat([batch.new_zeros(1), num_nodes.cumsum(dim=0)])
+
+    idx0 = batch[edge_index[0]]
+    idx1 = edge_index[0] - cum_nodes[batch][edge_index[0]]
+    idx2 = edge_index[1] - cum_nodes[batch][edge_index[1]]
+
+    if ((idx1.numel() > 0 and idx1.max() >= max_num_nodes)
+          or (idx2.numel() > 0 and idx2.max() >= max_num_nodes)):
+        mask = (idx1 < max_num_nodes) & (idx2 < max_num_nodes)
+        idx0 = idx0[mask]
+        idx1 = idx1[mask]
+        idx2 = idx2[mask]
+        edge_attr = None
+
+    edge_attr = torch.ones(idx0.numel(), device=edge_index.device)
+    size = [batch_size, max_num_nodes, max_num_nodes]
+    size += list(edge_attr.size())[1:]
+    flattened_size = batch_size * max_num_nodes * max_num_nodes
+    idx = idx0 * max_num_nodes * max_num_nodes + idx1 * max_num_nodes + idx2
+    adj = scatter(edge_attr, idx, dim=0, dim_size=flattened_size, reduce='sum')
+    adj = adj.view(size)
+    return adj
 
 
 class VocSepLightningModule(LightningModule):
@@ -101,7 +131,7 @@ class VocSepLightningModule(LightningModule):
         }
 
     def linear_assignment_step(self, batch_pred, pot_edges, target_edges, num_nodes):
-        adj_target = pyg.utils.to_dense_adj(target_edges, max_num_nodes=num_nodes).squeeze().long().cpu()
+        adj_target = to_dense_adj(target_edges, max_num_nodes=num_nodes).squeeze().long().cpu()
         if self.linear_assignment:
             # Solve with Hungarian Algorithm
             cost_matrix = torch.sparse_coo_tensor(
@@ -118,7 +148,7 @@ class VocSepLightningModule(LightningModule):
             pred_edges = pot_edges[:, torch.round(batch_pred).squeeze().long()]
             # compute pred and ground truth adj matrices
             if torch.sum(pred_edges) > 0:
-                adj_pred = pyg.utils.to_dense_adj(pred_edges, max_num_nodes=num_nodes).squeeze().cpu()
+                adj_pred = to_dense_adj(pred_edges, max_num_nodes=num_nodes).squeeze().cpu()
             else:  # to avoid exception in to_dense_adj when there is no predicted edge
                 adj_pred = torch.zeros((num_nodes, num_nodes)).squeeze().to(self.device).cpu()
         return adj_pred, adj_target
@@ -137,7 +167,7 @@ class VocSepLightningModule(LightningModule):
             target_edges: Target edges, shape (2, num_edges). Each column is the start and destination of a truth voice edge.
             num_nodes: Number of nodes in the graph, i.e., notes in the score.
         """
-        adj_target = pyg.utils.to_dense_adj(target_edges, max_num_nodes=num_nodes).squeeze().long().cpu()
+        adj_target = to_dense_adj(target_edges, max_num_nodes=num_nodes).squeeze().long().cpu()
         if self.linear_assignment:
             # Solve with Hungarian Algorithm
             cost_matrix = torch.sparse_coo_tensor(
@@ -153,7 +183,7 @@ class VocSepLightningModule(LightningModule):
             pred_edges = pot_edges[:, torch.round(batch_pred).squeeze().bool()]
             # compute pred and ground truth adj matrices
             if torch.sum(pred_edges) > 0:
-                adj_pred = pyg.utils.to_dense_adj(pred_edges, max_num_nodes=num_nodes).squeeze().cpu()
+                adj_pred = to_dense_adj(pred_edges, max_num_nodes=num_nodes).squeeze().cpu()
             else: # to avoid exception in to_dense_adj when there is no predicted edge
                 adj_pred = torch.zeros((num_nodes, num_nodes)).squeeze().to(self.device).cpu()
         # compute f1 score on the adj matrices
@@ -177,7 +207,7 @@ class VocSepLightningModule(LightningModule):
         pot_edges = pot_edges.cpu()
         target_edges = target_edges.cpu()
 
-        adj_target = pyg.utils.to_dense_adj(target_edges, max_num_nodes=num_nodes).squeeze().long().cpu()
+        adj_target = to_dense_adj(target_edges, max_num_nodes=num_nodes).squeeze().long().cpu()
 
         # Solve with Hungarian Algorithm
         cost_matrix = torch.sparse_coo_tensor(
@@ -196,7 +226,7 @@ class VocSepLightningModule(LightningModule):
         pred_edges = pot_edges[:, batch_pred.squeeze() > self.threshold]
         # compute pred and ground truth adj matrices
         if torch.sum(pred_edges) > 0:
-            adj_pred = pyg.utils.to_dense_adj(pred_edges, max_num_nodes=num_nodes).squeeze().cpu()
+            adj_pred = to_dense_adj(pred_edges, max_num_nodes=num_nodes).squeeze().cpu()
         else: # to avoid exception in to_dense_adj when there is no predicted edge
             adj_pred = torch.zeros((num_nodes, num_nodes)).squeeze().to(self.device).cpu()
         # compute f1 score on the adj matrices
@@ -213,7 +243,7 @@ class VocSepLightningModule(LightningModule):
         pot_edges = pot_edges.cpu()
         target_edges = target_edges.cpu()
 
-        adj_target = pyg.utils.to_dense_adj(target_edges, max_num_nodes=num_nodes).squeeze().long().cpu()
+        adj_target = to_dense_adj(target_edges, max_num_nodes=num_nodes).squeeze().long().cpu()
 
         # Solve with Hungarian Algorithm
         cost_matrix = torch.sparse_coo_tensor(

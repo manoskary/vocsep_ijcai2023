@@ -1,7 +1,7 @@
 from itertools import groupby
 import numpy as np
 from scipy.signal import argrelextrema
-from struttura.descriptors.utils.harmonic_ssm import apply_ssm_analysis
+from vocsep.descriptors.utils.harmonic_ssm import apply_ssm_analysis
 
 
 def note_array2chords(note_array):

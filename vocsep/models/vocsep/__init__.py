@@ -1,3 +1,2 @@
 from .VoicePred import GraphVoiceSeparationModel, GraphVoiceSeparationModel
-from .pl_models import UnetVoiceSeparationModel, VoiceLinkPredictionModel, VoiceLinkPredictionLightModelPG, HeteroVoiceLinkPredictionModel
-
+from .pl_models import HeteroVoiceLinkPredictionModel, VoiceLinkPredictionModel

@@ -1,9 +1,8 @@
 from sklearn.metrics.pairwise import cosine_similarity
-import itertools
 import numpy as np
 from scipy import ndimage
 from scipy.signal import argrelextrema
-from struttura.utils import chord_to_intervalVector
+from vocsep.utils import chord_to_intervalVector
 
 
 def intervalic_analysis(note_array, window_size=1):

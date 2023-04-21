@@ -41,18 +41,3 @@ class LinearAssignmentScore(Metric):
 
     def compute(self):
         return self.correct.float() / self.total
-
-
-class MultitaskAccuracy(Metric):
-    def __init__(self, tasks, ignore_index=-1):
-        super(MultitaskAccuracy, self).__init__()
-        self.accs = torch.nn.ModuleDict()
-        for task in tasks.keys():
-            self.accs[task] = Accuracy(ignore_index=ignore_index)
-
-    def update(self, pred, target):
-        for task in self.accs.keys():
-            self.accs[task].update(pred[task], target[task])
-
-    def compute(self):
-        return {task: self.accs[task].compute() for task in self.accs.keys()}

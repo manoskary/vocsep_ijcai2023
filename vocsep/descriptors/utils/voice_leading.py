@@ -1,5 +1,5 @@
 import numpy as np
-from struttura.utils import chord_to_intervalVector
+from vocsep.utils import chord_to_intervalVector
 
 
 INTVEC_DICT = { 

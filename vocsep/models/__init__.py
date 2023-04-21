@@ -1,2 +1,2 @@
-from .vocsep import GraphVoiceSeparationModel, GraphVoiceSeparationModel, UnetVoiceSeparationModel, VoiceLinkPredictionModel, HeteroVoiceLinkPredictionModel
+from .vocsep import GraphVoiceSeparationModel, GraphVoiceSeparationModel, VoiceLinkPredictionModel, HeteroVoiceLinkPredictionModel
 from .core import *

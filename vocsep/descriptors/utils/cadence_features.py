@@ -1,4 +1,4 @@
-from struttura.utils import chord_to_intervalVector
+from vocsep.utils import chord_to_intervalVector
 import numpy as np
 
 

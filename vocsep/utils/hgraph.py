@@ -2,13 +2,12 @@ import os
 import random, string
 import pickle
 import numpy as np
-from struttura.utils.general import exit_after
-# from struttura.utils.graph import ScoreGraph
-from struttura.descriptors.general import *
+from vocsep.utils.general import exit_after
+
+from vocsep.descriptors.general import *
 import torch
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import connected_components
-import torch_geometric as pyg
 
 
 class HeteroScoreGraph(object):
@@ -344,38 +343,17 @@ def adj_matrix_from_edges(edges, number_of_nodes):
         
 
 def add_reverse_edges(graph, mode):
-    if isinstance(graph, HeteroScoreGraph):
-        if mode == "new_type":
-            # Add reverse During Edges
-            graph.edge_index = torch.cat((graph.edge_index, graph.get_edges_of_type("during").flip(0)), dim=1)
-            graph.edge_type = torch.cat((graph.edge_type, 2 + torch.zeros(graph.edge_index.shape[1] - graph.edge_type.shape[0],dtype=torch.long)), dim=0)
-            # Add reverse Consecutive Edges
-            graph.edge_index = torch.cat((graph.edge_index, graph.get_edges_of_type("consecutive").flip(0)), dim=1)
-            graph.edge_type = torch.cat((graph.edge_type, 4+torch.zeros(graph.edge_index.shape[1] - graph.edge_type.shape[0], dtype=torch.long)), dim=0)
-            graph.etypes["consecutive_rev"] = 4
-        else:
-            graph.edge_index = torch.cat((graph.edge_index, graph.edge_index.flip(0)), dim=1)
-            raise NotImplementedError("To undirected is not Implemented for HeteroScoreGraph.")
-    # elif isinstance(graph, ScoreGraph):
-    #     raise NotImplementedError("To undirected is not Implemented for ScoreGraph.")
+    if mode == "new_type":
+        # Add reverse During Edges
+        graph.edge_index = torch.cat((graph.edge_index, graph.get_edges_of_type("during").flip(0)), dim=1)
+        graph.edge_type = torch.cat((graph.edge_type, 2 + torch.zeros(graph.edge_index.shape[1] - graph.edge_type.shape[0],dtype=torch.long)), dim=0)
+        # Add reverse Consecutive Edges
+        graph.edge_index = torch.cat((graph.edge_index, graph.get_edges_of_type("consecutive").flip(0)), dim=1)
+        graph.edge_type = torch.cat((graph.edge_type, 4+torch.zeros(graph.edge_index.shape[1] - graph.edge_type.shape[0], dtype=torch.long)), dim=0)
+        graph.etypes["consecutive_rev"] = 4
     else:
-        if mode == "new_type":
-            # add reversed consecutive edges
-            graph["note", "consecutive_rev", "note"].edge_index = graph[
-                "note", "consecutive", "note"
-            ].edge_index[[1, 0]]
-            # add reversed during edges
-            graph["note", "during_rev", "note"].edge_index = graph[
-                "note", "during", "note"
-            ].edge_index[[1, 0]]
-            # add reversed rest edges
-            graph["note", "rest_rev", "note"].edge_index = graph[
-                "note", "rest", "note"
-            ].edge_index[[1, 0]]
-        elif mode == "undirected":
-            graph = pyg.transforms.ToUndirected()(graph)
-        else:
-            raise ValueError("mode must be either 'new_type' or 'undirected'")
+        graph.edge_index = torch.cat((graph.edge_index, graph.edge_index.flip(0)), dim=1)
+        raise NotImplementedError("To undirected is not Implemented for HeteroScoreGraph.")
     return graph
 
 

@@ -1,8 +1,10 @@
 import numpy
 import numpy as np
-from struttura.utils import chord_to_intervalVector
+from vocsep.utils import chord_to_intervalVector
 import partitura as pt
 from typing import List, Tuple
+
+
 
 
 CHORDS = {

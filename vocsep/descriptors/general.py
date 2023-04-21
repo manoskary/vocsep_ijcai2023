@@ -6,7 +6,7 @@ import partitura.score
 from .utils import *
 from typing import Union, Tuple, List
 # If imported should contain the name of descriptors
-from struttura.utils.globals import *
+from vocsep.utils.globals import *
 import types
 import sys
 

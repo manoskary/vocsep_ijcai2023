@@ -1,6 +1,6 @@
 import numpy as np
 from itertools import groupby
-from struttura.utils import chord_to_intervalVector
+from vocsep.utils import chord_to_intervalVector
 
 
 int_vec_cadence_dict = { 

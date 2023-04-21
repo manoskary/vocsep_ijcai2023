@@ -2,7 +2,7 @@ import numpy as np
 from scipy.signal import argrelextrema
 import partitura as pt
 from scipy import linalg as la
-from struttura.descriptors.utils.harmonic_ssm import apply_ssm_analysis
+from vocsep.descriptors.utils.harmonic_ssm import apply_ssm_analysis
 
 
 def part_to_pianoroll_window_size(part):

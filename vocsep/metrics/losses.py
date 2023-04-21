@@ -2,6 +2,7 @@ import torch.nn.functional as F
 import torch
 from torch_scatter import scatter
 
+
 class LinkPredictionLoss(torch.nn.Module):
     def __init__(self):
         super(LinkPredictionLoss, self).__init__()

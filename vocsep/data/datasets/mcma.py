@@ -1,17 +1,7 @@
-import gc
-
-import numpy as np
-from struttura.models.core import positional_encoding
-from struttura.utils.hgraph import *
-from struttura.utils.graph import score_graph_to_pyg
+from vocsep.utils.hgraph import *
 import os
-from struttura.data.dataset import BuiltinDataset, StrutturaDataset
-from struttura.data.vocsep import GraphVoiceSeparationDataset
-from joblib import Parallel, delayed
-from tqdm import tqdm
-from numpy.lib.recfunctions import structured_to_unstructured
-from collections import defaultdict
-import torch_geometric as pyg
+from ..dataset import BuiltinDataset
+from ..vocsep import GraphVoiceSeparationDataset
 
 
 class MCMADataset(BuiltinDataset):
@@ -116,170 +106,6 @@ class MCMAGraphVoiceSeparationDataset(GraphVoiceSeparationDataset):
             include_measures=include_measures,
         )
 
-class MCMAGraphPGVoiceSeparationDataset(GraphVoiceSeparationDataset):
-    r"""The MCMADataset Graph Voice Separation Dataset for pytorch geometric.
-    Parameters
-    -----------
-    raw_dir : str
-        Raw file directory to download/contains the input data directory.
-        Dataset will search if MCMADataset scores are already available otherwise it will download it.
-        Default: ~/.struttura/
-    force_reload : bool
-        Whether to reload the dataset. Default: False
-    verbose : bool
-        Whether to print out progress information. Default: True.
-    """
-
-    def __init__(self, raw_dir=None, force_reload=False, verbose=True, nprocs=4, pot_edges_dist=2):
-        dataset_base = MCMADataset(raw_dir=raw_dir)
-        super().__init__(
-            dataset_base=dataset_base,
-            is_pyg=True,
-            raw_dir=raw_dir,
-            force_reload=force_reload,
-            verbose=verbose,
-            nprocs=nprocs,
-            pot_edges_dist=pot_edges_dist,
-        )
-
-
-
-# class MCMAGraphPGVoiceSeparationDataset(StrutturaDataset):
-#     r"""The MCMADataset Graph Voice Separation Dataset.
-#     Parameters
-#     -----------
-#     raw_dir : str
-#         Raw file directory to download/contains the input data directory.
-#         Dataset will search if MCMADataset scores are already available otherwise it will download it.
-#         Default: ~/.struttura/
-#     force_reload : bool
-#         Whether to reload the dataset. Default: False
-#     verbose : bool
-#         Whether to print out progress information. Default: True.
-#     """
-
-#     def __init__(
-#         self, raw_dir=None, force_reload=False, verbose=True, nprocs=4, pot_edges_max_dist=2
-#     ):
-#         self.dataset_base = MCMADataset(raw_dir=raw_dir)
-#         self.dataset_base.process()
-#         if verbose:
-#             print("Loaded MCMADataset Successfully, now processing...")
-#         self.graphs = list()
-#         self.n_jobs = nprocs
-#         self.pot_edges_max_dist = pot_edges_max_dist
-#         print("pot_edges_max_dist", self.pot_edges_max_dist)
-#         super(MCMAGraphPGVoiceSeparationDataset, self).__init__(
-#             name="MCMAGraphPGVoiceSeparationDataset",
-#             raw_dir=raw_dir,
-#             force_reload=force_reload,
-#             verbose=verbose,
-#         )
-        
-
-#     def process(self):
-#         if not os.path.exists(self.save_path):
-#             os.makedirs(self.save_path)
-#         Parallel(n_jobs=self.n_jobs)(
-#             delayed(self._process_score)(score, collection)
-#             for score, collection in tqdm(
-#                 zip(self.dataset_base.scores, self.dataset_base.collections)
-#             )
-#         )
-#         self.load()
-
-
-
-#     def _process_score(self, score_fn, collection):
-#         if not os.path.exists(
-#             os.path.join(
-#                 self.save_path, os.path.splitext(os.path.basename(score_fn))[0]
-#             )
-#         ):
-#             score = partitura.load_score(score_fn)
-#             note_array = score.note_array(
-#                 include_time_signature=True,
-#                 include_grace_notes=True,
-#                 include_staff=True,
-#             )
-#             # preprocess to remove extra voices and chords
-#             note_array = preprocess_na_to_monophonic(note_array, score_fn)
-#             # build the HeteroGraph
-#             nodes, edges, pot_edges = hetero_graph_from_note_array(note_array, pot_edge_dist=2)
-#             note_features = select_features(note_array, "voice")
-#             hg = HeteroScoreGraph(
-#                 note_features,
-#                 edges,
-#                 name=os.path.splitext(os.path.basename(score_fn))[0],
-#                 labels=None,
-#                 note_array=note_array,
-#             )
-#             # # Adding positional encoding to the graph features.
-#             pos_enc = positional_encoding(hg.edge_index, len(hg.x), 20)
-#             hg.x = torch.cat((hg.x, pos_enc), dim=1)
-#             # Compute the truth edges
-#             truth_edges = get_mcma_truth_edges(note_array)
-#             setattr(hg, "truth_edges", truth_edges)
-#             # Compute the potential edges to use for prediction.
-#             # pot_edges = get_mcma_potential_edges(hg, max_dist = self.pot_edges_max_dist)
-#             setattr(hg, "pot_edges", torch.tensor(pot_edges))
-#             # compute the truth edges mask over potential edges
-#             truth_edges_mask, dropped_truth_edges = get_edges_mask(truth_edges, pot_edges, check_strict_subset=True)
-#             setattr(hg, "truth_edges_mask", truth_edges_mask)  
-#             setattr(hg, "dropped_truth_edges", dropped_truth_edges)
-#             # Save collection as an attribute of the graph.
-#             setattr(hg, "collection", collection)
-#             pg_graph = score_graph_to_pyg(hg)
-
-#             file_path = os.path.join(self.save_path, pg_graph["name"] + ".pt")
-#             torch.save(pg_graph, file_path)
-#             del hg, note_array, truth_edges, nodes, edges, note_features, score
-#             del pg_graph
-#             gc.collect()
-#         return
-
-#     def save(self):
-#         """save the graph list and the labels"""
-#         pass
-
-#     def has_cache(self):
-#         if all(
-#             [
-#                 os.path.exists(
-#                     os.path.join(
-#                         self.save_path,
-#                         os.path.splitext(os.path.basename(path))[0] + ".pt",
-#                     )
-#                 )
-#                 for path in self.dataset_base.scores
-#             ]
-#         ):
-#             return True
-#         return False
-
-#     def load(self):
-#         for fn in os.listdir(self.save_path):
-#             path_graph = os.path.join(self.save_path, fn)
-#             graph = torch.load(path_graph)
-#             self.graphs.append(graph)
-
-
-#     def __getitem__(self, idx):
-#         return [[self.graphs[i]] for i in idx]
-
-#     def __len__(self):
-#         return len(self.graphs)
-
-#     @property
-#     def features(self):
-#         return self.graphs[0]["note"].x.shape[-1]
-
-#     @property
-#     def metadata(self):
-#         return self.graphs[0].metadata()
-
-#     def num_dropped_truth_edges(self):
-#         return sum([len(graph["dropped_truth_edges"]) for graph in self.graphs])
 
 def get_mcma_potential_edges(hg, max_dist=16):
     raise Exception("Not goood, you should not be here")
@@ -329,6 +155,7 @@ def get_mcma_truth_edges(note_array):
     truth_edges = np.hstack(truth_edges)
     return torch.from_numpy(truth_edges)
 
+
 def get_edges_mask(subset_edges, total_edges, transpose=True, check_strict_subset=False):
     """Get a mask of edges to use for training.
     Parameters
@@ -371,6 +198,7 @@ def get_edges_mask(subset_edges, total_edges, transpose=True, check_strict_subse
         return torch.from_numpy(np.isin(view_total, view_subset)).squeeze(), dropped_edges
     else:
         return torch.from_numpy(np.isin(view_total, view_subset)).squeeze()
+
 
 def preprocess_na_to_monophonic(note_array, score_fn, drop_extra_voices = True, drop_chords = True):
     """Preprocess the note array to remove polyphonic artifacts.
