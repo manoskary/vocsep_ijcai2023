@@ -15,24 +15,27 @@ To install requirements and run just do:
 pip install -r requirements.txt
 ```
 The requirements installs the cpu version of Pytorch and Pytorch-Scatter
-If you want to run the code with CUDA please install the corresponding version of Pytorch and Pytorch-Scatter to your system (follow links for more information).
-
+If you want to run the code with CUDA please install the corresponding version of [Pytorch](https://pytorch.org/) and [Pytorch-Scatter](https://github.com/rusty1s/pytorch_scatter) to your system (follow links for more information).
 
 To run the code just do:
 ```shell
-python -m experiment.py
+python -m main.py
 ```
 
 For more information about the configuration you can add execute with the flag `-h`.
 
+This project depends on [WANDB](https://wandb.ai/) therfore you will need an account to run the code.
 
 #### Results 
 
-|                   |       | extbf{McLeod} |       |       | \textbf{GMTT} |       |       | \textbf{GMMT+LA} |                 |
-|-------------------|-------|---------------|-------|-------|---------------|-------|-------|------------------|-----------------|
-| \textbf{Datasets} | P     | R             | F1    | P     | R             | F1    | P     | R                | F1              |
-| Inventions        | 0.992 | 0.991         | 0.992 | 0.989 | 0.997         | 0.995 | 0.996 | 0.995            | \textbf{0.997}  |
-| Sinfonias         | 0.982 | 0.982         | 0.982 | 0.987 | 0.989         | 0.978 | 0.987 | 0.982            | \textbf{0.985}  |
-| WTC I             | 0.964 | 0.964         | 0.964 | 0.949 | 0.983         | 0.967 | 0.980 | 0.973            | \textbf{0.976}  |
-| WTC II            | 0.964 | 0.964         | 0.964 | 0.945 | 0.979         | 0.962 | 0.976 | 0.968            | \textbf{0.972}  |
-| Haydn             | 0.781 | 0.781         | 0.781 | 0.787 | 0.929         | 0.850 | 0.883 | 0.860            | \textbf{ 0.872} |
+|            |       | extbf{McLeod} |       |       | \textbf{GMTT} |       |       | \textbf{GMMT+LA} |                 |
+|------------|-------|---------------|-------|-------|---------------|-------|-------|------------------|-----------------|
+| Datasets   | P     | R             | F1    | P     | R             | F1    | P     | R                | F1              |
+| Inventions | 0.992 | 0.991         | 0.992 | 0.989 | 0.997         | 0.995 | 0.996 | 0.995            | \textbf{0.997}  |
+| Sinfonias  | 0.982 | 0.982         | 0.982 | 0.987 | 0.989         | 0.978 | 0.987 | 0.982            | \textbf{0.985}  |
+| WTC I      | 0.964 | 0.964         | 0.964 | 0.949 | 0.983         | 0.967 | 0.980 | 0.973            | \textbf{0.976}  |
+| WTC II     | 0.964 | 0.964         | 0.964 | 0.945 | 0.979         | 0.962 | 0.976 | 0.968            | \textbf{0.972}  |
+| Haydn      | 0.781 | 0.781         | 0.781 | 0.787 | 0.929         | 0.850 | 0.883 | 0.860            | \textbf{ 0.872} |
+
+
+For all results and model visit our logs at [WANDB](https://wandb.ai/vocsep/Voice%20Separation).
