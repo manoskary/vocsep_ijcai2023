@@ -4,10 +4,10 @@ import random
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning import Trainer
-from struttura.models.vocsep import HeteroVoiceLinkPredictionModel, VoiceLinkPredictionModel
-from struttura.data.datamodules.mix_vs import GraphMixVSDataModule
+from .vocsep.models.vocsep import HeteroVoiceLinkPredictionModel, VoiceLinkPredictionModel
+from .vocsep.data.datamodules.mix_vs import GraphMixVSDataModule
 from pytorch_lightning.plugins import DDPPlugin
-from struttura.utils.visualization import show_voice_pr
+from .vocsep.utils.visualization import show_voice_pr
 import argparse
 
 
