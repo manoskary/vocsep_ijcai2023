@@ -3,7 +3,7 @@ from joblib import Parallel, delayed
 from tqdm import tqdm
 import partitura
 import os
-from vocsep.utils import hetero_graph_from_note_array, select_features, HeteroScoreGraph, score_graph_to_pyg, load_score_hgraph
+from vocsep.utils import hetero_graph_from_note_array, select_features, HeteroScoreGraph, load_score_hgraph
 from vocsep.models.core import positional_encoding
 import torch
 import partitura as pt
@@ -120,13 +120,7 @@ class GraphVoiceSeparationDataset(StrutturaDataset):
             setattr(hg, "collection", collection)
             setattr(hg, "truth_edges_mask", truth_edges_mask)
             setattr(hg, "dropped_truth_edges", dropped_truth_edges)
-            if self.is_pyg:
-                pg_graph = score_graph_to_pyg(hg)
-                file_path = os.path.join(self.save_path, pg_graph["name"] + ".pt")
-                torch.save(pg_graph, file_path)
-                del pg_graph
-            else:
-                hg.save(self.save_path)
+            hg.save(self.save_path)
             del hg, note_array, truth_edges, nodes, edges, note_features, score
             gc.collect()
         return
@@ -153,7 +147,7 @@ class GraphVoiceSeparationDataset(StrutturaDataset):
     def load(self):
         for fn in os.listdir(self.save_path):
             path_graph = os.path.join(self.save_path, fn)
-            graph = torch.load(path_graph) if self.is_pyg else load_score_hgraph(path_graph, fn)
+            graph = load_score_hgraph(path_graph, fn)
             self.graphs.append(graph)
 
     def __getitem__(self, idx):

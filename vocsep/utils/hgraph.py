@@ -1,9 +1,7 @@
 import os
 import random, string
 import pickle
-import numpy as np
-from vocsep.utils.general import exit_after
-
+from .general import exit_after
 from vocsep.descriptors.general import *
 import torch
 from scipy.sparse import csr_matrix

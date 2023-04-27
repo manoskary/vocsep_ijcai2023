@@ -2,7 +2,7 @@
 from functools import partial
 import partitura
 from typing import Union, Dict
-from vocsep.utils.general import exit_after
+from .general import exit_after
 import numpy as np
 import torch
 import os

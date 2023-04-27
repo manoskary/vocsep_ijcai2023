@@ -43,7 +43,10 @@ torch.use_deterministic_algorithms(True)
 
 
 args = parser.parse_args()
-devices = [eval(gpu) for gpu in args.gpus.split(",")]
+if args.gpus == "-1":
+    devices = torch.device("cpu")
+else:
+    devices = [eval(gpu) for gpu in args.gpus.split(",")]
 rev_edges = "new_type"
 collections = args.collection.split(",")
 n_layers = args.n_layers
@@ -101,7 +104,6 @@ if args.load_from_checkpoint:
         max_epochs=50, accelerator="auto", devices=devices,
         num_sanity_val_steps=1,
         logger=wandb_logger,
-        plugins=DDPPlugin(find_unused_parameters=False),
     )
     trainer.test(model, datamodule, ckpt_path=os.path.join(os.path.normpath(artifact_dir), "model.ckpt"))
 
@@ -123,7 +125,6 @@ else:
         max_epochs=50, accelerator="auto", devices=devices,
         num_sanity_val_steps=1,
         logger=wandb_logger,
-        plugins=DDPPlugin(find_unused_parameters=False) if len(devices) > 1 else None,
         callbacks=[checkpoint_callback],
         )
 

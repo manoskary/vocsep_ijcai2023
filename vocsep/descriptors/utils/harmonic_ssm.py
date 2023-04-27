@@ -2,7 +2,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 from scipy import ndimage
 from scipy.signal import argrelextrema
-from vocsep.utils import chord_to_intervalVector
+from vocsep.utils.chord_representations import chord_to_intervalVector
 
 
 def intervalic_analysis(note_array, window_size=1):

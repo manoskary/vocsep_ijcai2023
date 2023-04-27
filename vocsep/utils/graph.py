@@ -7,7 +7,6 @@ from vocsep.utils.general import exit_after
 from vocsep.descriptors.general import *
 import torch
 from typing import Union
-from vocsep.utils.hgraph import HeteroScoreGraph
 
 
 class ScoreGraph(object):
@@ -419,54 +418,6 @@ def rec_dir_search(par_dir, doc_type, result=[]):
     return result
 
 
-def score_graph_to_pyg(
-    score_graph: Union[ScoreGraph, HeteroScoreGraph]
-):
-    """
-    Converts a ScoreGraph to a PyTorch Geometric graph.
-    Parameters
-    ----------
-    score_graph : ScoreGraph
-        The ScoreGraph to convert
-    """
-    # edge_index = score_graph.edge_index.clone().t().contiguous()
-    # edge_attr = (
-    #     score_graph.edge_weights.clone()
-    #     if score_graph.edge_weights is not None
-    #     else None
-    # )
-    if isinstance(score_graph, HeteroScoreGraph):
-        data = pyg.data.HeteroData()
-        data["note"].x = score_graph.x.clone()
-        # data["note"].y = y
-        # add edges
-        for e_type in score_graph.etypes.keys():
-            data["note", e_type, "note"].edge_index = score_graph.get_edges_of_type(
-                e_type
-            )
-        # add pitch, onset, offset info in divs that is necessary for evaluation
-        data["note"].pitch = torch.from_numpy(score_graph.note_array["pitch"].copy())
-        data["note"].onset_div = torch.from_numpy(score_graph.note_array["onset_div"].copy())
-        data["note"].duration_div = torch.from_numpy(score_graph.note_array["duration_div"].copy())
-        data["note"].onset_beat = torch.from_numpy(score_graph.note_array["onset_beat"].copy())
-        data["note"].duration_beat = torch.from_numpy(score_graph.note_array["duration_beat"].copy())
-        data["note"].ts_beats = torch.from_numpy(score_graph.note_array["ts_beats"].copy())
-        # # add edges that will be used during evaluation
-        # data["pot_edges"] = score_graph.pot_edges.clone().contiguous()
-        # data["truth_edges_mask"] = score_graph.truth_edges_mask.clone().contiguous()
-        # data["truth_edges"] = score_graph.truth_edges.clone().contiguous()
-    else:
-        raise ValueError("Only HeteroScoreGraph is supported for now")
-        # data = pyg.data.Data(x=x, edge_index=edge_index, y=y, edge_attr=edge_attr)
-
-    # adding various graph info
-    for key, value in vars(score_graph).items():
-        if key not in ["x", "edge_index", "y", "edge_attr", "edge_weights", "node_features", "etypes", "note_array"]:	
-            if isinstance(value, (np.ndarray, np.generic) ):
-                data[key] = torch.tensor(value)
-            else:
-                data[key] = value
-    return data
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-from vocsep.utils import chord_to_intervalVector
+from vocsep.utils.chord_representations import chord_to_intervalVector
 import numpy as np
 
 
