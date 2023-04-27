@@ -44,7 +44,7 @@ torch.use_deterministic_algorithms(True)
 
 args = parser.parse_args()
 if args.gpus == "-1":
-    devices = torch.device("cpu")
+    devices = None
 else:
     devices = [eval(gpu) for gpu in args.gpus.split(",")]
 rev_edges = "new_type"
