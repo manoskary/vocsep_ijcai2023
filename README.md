@@ -10,7 +10,13 @@ Our approach does not use domain-specific heuristics, is scalable to longer sequ
 
 ## Install and Run
 
-To install requirements and run just do:
+It is suggested to create an environment using conda or miniconda more information [here](https://docs.conda.io/projects/miniconda/en/latest/index.html).
+If you have conda then do:
+```shell
+conda create -n vocsep python=3.8
+conda activate vocsep
+```
+The suggested version of python is 3.8 or later. To install requirements and run just do:
 ```shell
 pip install -r requirements.txt
 ```
